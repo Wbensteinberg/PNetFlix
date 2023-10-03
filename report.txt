@@ -1,0 +1,323 @@
+Unable to finish:
+I was unable to finish the tiebreaker in the Recommender class where two movies with the same compatibility score are sorted off of their rating.
+
+No bugs I have not been able to fix.
+
+I didn't use any banned STL components.
+
+Test Cases:
+
+const std::string USER_DATAFILE  = "users.txt";
+const std::string MOVIE_DATAFILE = "movies.txt";
+
+int main()
+{
+   testIterator();
+
+//      prints 5, 6, and 7 in some order
+    TreeMultimap<std::string, int> tmm;
+     tmm.insert("carey", 5);
+     tmm.insert("carey", 6);
+     tmm.insert("carey", 7);
+     tmm.insert("david", 25);
+     tmm.insert("david", 425);
+     TreeMultimap<std::string,int>::Iterator it = tmm.find("carey");
+     // prints 5, 6, and 7 in some order
+
+    if(!it.is_valid())
+    {
+        std::cerr << "not valid" << std::endl;
+    }
+    while (it.is_valid())
+    {
+        std::cout << it.get_value() << std::endl;
+        it.advance();
+    }
+
+    it = tmm.find("laura");
+    if(!it.is_valid())
+    {
+        std::cout << "laura is not in the multimap!" << std::endl;
+    }
+
+    it = tmm.find("david");
+
+    if(!it.is_valid())
+    {
+        std::cerr << "uh oh" << std::endl;
+    }
+    while(it.is_valid())
+    {
+        std::cerr << it.get_value() << std::endl;
+        it.advance();
+    }
+
+    tmm.insert("Will", 100);
+    tmm.insert("Will", 16);
+    tmm.insert("Kate", 15);
+    TreeMultimap<std::string,int>::Iterator p = tmm.find("will");
+    if(!p.is_valid())
+    {
+        std::cerr << "case" << std::endl;
+    }
+    p = tmm.find("Will");
+    while(p.is_valid())
+    {
+        std::cerr << p.get_value() << std::endl;
+        p.advance();
+    }
+    p = tmm.find("Kate");
+    while(p.is_valid())
+    {
+        std::cerr << p.get_value() << std::endl;
+        p.advance();
+    }
+
+    // User test
+    std::vector<std::string> movies;
+    movies.push_back("Wolverine");
+    movies.push_back("SpiderMan");
+    User u("Will Steinberg","wbensteinberg@gmail.com",movies);
+    assert(u.get_full_name() == "Will Steinberg" && u.get_email() == "wbensteinberg@gmail.com");
+    assert(u.get_watch_history()[0] == "Wolverine");
+    assert(u.get_watch_history()[1] == "SpiderMan");
+
+//     UserDataBase test
+    UserDatabase udb;
+    if (!udb.load(USER_DATAFILE))
+    {
+        std::cout << "Failed to load user data file " << USER_DATAFILE << "!" << std::endl;
+        return 1;
+    }
+    else
+    {
+        std::cerr << "loaded" << std::endl;
+    }
+    
+    User* o = udb.get_user_from_email("AbFow2483@charter.net");
+    assert(o->get_full_name() == "Abdullah Fowler");
+    assert(o->get_email() == "AbFow2483@charter.net");
+    assert(o->get_watch_history()[0] == "ID22937");
+    assert(o->get_watch_history()[4] == "ID18156");
+    for (;;)
+    {
+        std::cout << "Enter user email address (or quit): ";
+        std::string email;
+        std::getline(std::cin, email);
+        if (email == "quit")
+            return 0;
+        User* u = udb.get_user_from_email(email);
+        if (u == nullptr)
+            std::cout << "No user in the database has that email address." << std::endl;
+        else
+            std::cout << "Found " << u->get_full_name() << std::endl;
+//    }
+    
+    // Movie Data Base test
+    MovieDatabase mdb;
+    if(!mdb.load(MOVIE_DATAFILE))
+    {
+        std::cerr << "Failed to load movie data file " << MOVIE_DATAFILE << std:: endl;
+    }
+    std::vector<Movie*> mps = mdb.get_movies_with_director("Harald Reinl");
+    assert(mps[0]->get_title() == "The Carpet of Horror");
+    assert(mps[0]->get_actors()[1] == "Karin Dor");
+    assert(mps[1]->get_title() == "In Search of Ancient Astronauts");
+    assert(mps[5]->get_id() == "ID20455");
+    std::vector<Movie*> mps1 = mdb.get_movies_with_actor("Negar Javaherian");
+    assert(mps1[0]->get_title() == "Lovely Trash");
+    assert(mps1[0]->get_genres()[2] == "Fantasy");
+    assert(mps1[1]->get_directors()[0] == "Maziar Miri");
+    std::vector<Movie*> mps2 = mdb.get_movies_with_genre("Animation");
+    assert(mps2[0]->get_title() == "Monkey Love Experiments");
+    assert(mps2[0]->get_actors()[1] == "Oliver Henderson");
+    assert(mps2[1]->get_title() == "Maria, Mirabella");
+    for (;;)
+    {
+            std::cout << "Enter movie ID (or quit): ";
+            std::string id;
+            std::getline(std::cin, id);
+            if (id == "quit")
+                return 0;
+            Movie* mv = mdb.get_movie_from_id(id);
+            if (mv == nullptr)
+                std::cout << "No movie in the database has that ID." << std::endl;
+            else
+                std::cout << "Found " << mv->get_title() << std::endl;
+    }
+    
+    // Recommender Tests
+    Recommender r(udb,mdb);
+    std::vector<MovieAndRank> rec = r.recommend_movies("AbFow2483@charter.net", 5);
+    for(std::vector<MovieAndRank>::iterator p = rec.begin();p != rec.end();p++)
+    {
+        std::cerr << (*p).movie_id << std::endl;
+    }
+}
+// User Data Base Tests
+ // ~TESTS~
+    // first user
+    TreeMultimap<std::string,User>::Iterator i = tm.find("AbFow2483@charter.net");
+    assert(i.get_value().get_full_name() == "Abdullah Fowler");
+    assert(i.get_value().get_watch_history()[0] == "ID22937");
+    assert(i.get_value().get_watch_history()[1] == "ID04742");
+    assert(i.get_value().get_watch_history()[i.get_value().get_watch_history().size()-1] == "ID22199");
+    i.advance();
+    assert(!i.is_valid());
+    
+    // random user
+    TreeMultimap<std::string,User>::Iterator y = tm.find("KellenArno@zoho.com");
+    assert(y.get_value().get_full_name() == "Kellen Arnold");
+    assert(y.get_value().get_watch_history()[0] == "ID35311");
+    assert(y.get_value().get_watch_history()[y.get_value().get_watch_history().size()-1] == "ID11686");
+    y.advance();
+    assert(!y.is_valid());
+    
+    // second to last user
+    TreeMultimap<std::string,User>::Iterator g = tm.find("JaimS@icloud.com");
+    assert(g.get_value().get_full_name() == "Jaime Swanson");
+    assert(g.get_value().get_watch_history()[0] == "ID13295");
+    assert(g.get_value().get_watch_history()[g.get_value().get_watch_history().size()-1] == "ID17774");
+    g.advance();
+    assert(!g.is_valid());
+    
+    // last user
+    TreeMultimap<std::string,User>::Iterator z = tm.find("KabiL@aol.com");
+    assert(z.get_value().get_full_name() == "Kabir Luna");
+    assert(z.get_value().get_watch_history()[0] == "ID36383");
+    assert(z.get_value().get_watch_history()[z.get_value().get_watch_history().size()-1] == "ID14614");
+    z.advance();
+    assert(!z.is_valid());
+    
+    // user not in data file
+    TreeMultimap<std::string,User>::Iterator f = tm.find("wbensteinberg@gmail.com");
+    assert(!f.is_valid());
+
+// Movie Data Base Tests
+   // ~TESTS~
+    // first ID
+    TreeMultimap<std::string,Movie>::Iterator i = m_t_movie_ID.find("ID10782");
+    assert(i.get_value().get_title() == "Santosh Subramaniam");
+    assert(i.get_value().get_release_year() == "2008");
+    assert(i.get_value().get_rating() == 5);
+    assert(i.get_value().get_directors()[0] == "M. Raja");
+    assert(i.get_value().get_actors()[0] == "Jayam Ravi");
+    assert(i.get_value().get_actors()[1] == "Genelia D'Souza");
+    assert(i.get_value().get_actors()[2] == "Prakash Raj");
+    assert(i.get_value().get_actors()[3] == "Sayaji Shinde");
+    assert(i.get_value().get_actors()[4] == "Geetha");
+    assert(i.get_value().get_genres()[0] == "Action");
+    assert(i.get_value().get_genres()[1] == "Comedy");
+    assert(i.get_value().get_genres()[2] == "Romance");
+    i.advance();
+    assert(!i.is_valid());
+    
+    // random ID
+    TreeMultimap<std::string,Movie>::Iterator y = m_t_movie_ID.find("ID36770");
+    assert(y.get_value().get_title() == "The Man Without Gravity");
+    assert(y.get_value().get_release_year() == "2019");
+    assert(y.get_value().get_directors()[0] == "Marco Bonfanti");
+    assert(y.get_value().get_actors()[0] == "Elio Germano");
+    assert(y.get_value().get_actors()[1] == "Michela Cescon");
+    assert(y.get_value().get_actors()[4] == "Vincent Scarito");
+    assert(y.get_value().get_genres()[0] == "Fantasy");
+    y.advance();
+    assert(!y.is_valid());
+    
+    // last ID
+    TreeMultimap<std::string,Movie>::Iterator z = m_t_movie_ID.find("ID03086");
+    assert(z.get_value().get_title() == "Jallikattu");
+    assert(z.get_value().get_release_year() == "2019");
+    assert(z.get_value().get_directors()[0] == "Lijo Jose Pellissery");
+    assert(z.get_value().get_actors()[0] == "Antony Varghese");
+    assert(z.get_value().get_actors()[2] == "Sabumon Abdusamad");
+    assert(z.get_value().get_actors()[4] == "Jaffer Idukki");
+    assert(z.get_value().get_genres()[0] == "Action");
+    assert(z.get_value().get_genres()[3] == "Thriller");
+//    cerr << z.get_value().get_rating() << " test" << endl;
+//    assert(z.get_value().get_rating() == 3.08333);
+    z.advance();
+    assert(!z.is_valid());
+    
+    // first Director
+    TreeMultimap<std::string,Movie>::Iterator f = m_t_director.find("m. raja");
+    assert(f.get_value().get_title() == "Santosh Subramaniam");
+    assert(f.get_value().get_actors()[4] == "Geetha");
+    assert(f.get_value().get_id() == "ID10782");
+    assert(f.get_value().get_genres()[2] == "Romance");
+    assert(f.get_value().get_rating() == 5);
+    f.advance();
+    assert(f.get_value().get_title() == "Something Something... Unakkum Enakkum");
+    f.advance();
+    f.advance();
+    f.advance();
+    f.advance();
+    assert(f.get_value().get_title() == "Velaikkaran");
+    f.advance();
+    assert(!f.is_valid());
+    
+    // random Director
+    f = m_t_director.find("marco bonfanti");
+    assert(f.get_value().get_title() == "The Man Without Gravity");
+    assert(f.get_value().get_actors()[4] == "Vincent Scarito");
+    assert(f.get_value().get_id() == "ID36770");
+    assert(f.get_value().get_genres()[0] == "Fantasy");
+    f.advance();
+    assert(!f.is_valid());
+    
+    // last Director
+    f = m_t_director.find("lijo jose pellissery");
+    assert(f.get_value().get_title() == "Jallikattu");
+    assert(f.get_value().get_actors()[4] == "Jaffer Idukki");
+    assert(f.get_value().get_id() == "ID03086");
+    assert(f.get_value().get_genres()[3] == "Thriller");
+    f.advance();
+//    assert(!f.is_valid());
+    
+    // first Actor
+    TreeMultimap<std::string,Movie>::Iterator v = m_t_actor.find("jayam ravi");
+    assert(v.get_value().get_title() == "Santosh Subramaniam");
+    assert(v.get_value().get_directors()[0] == "M. Raja");
+    assert(v.get_value().get_actors()[4] == "Geetha");
+    assert(v.get_value().get_genres()[1] == "Comedy");
+    assert(v.get_value().get_rating() == 5);
+    v.advance();
+    v.advance();
+    assert(v.get_value().get_title() == "M. Kumaran S/O Mahalakshmi");
+    
+    // Last Actor
+    TreeMultimap<std::string,Movie>::Iterator l = m_t_actor.find("scott bakula");
+    assert(l.get_value().get_title() == "Necessary Roughness");
+    assert(l.get_value().get_genres()[0] == "Comedy");
+    for(int k = 0;k < 13;k++)
+    {
+        l.advance();
+    }
+    assert(l.get_value().get_title() == "Lord of Illusions");
+    assert(l.get_value().get_id() == "ID05902");
+    l.advance();
+    assert(!l.is_valid());
+    
+    l = m_t_actor.find("charles coburn");
+    assert(l.get_value().get_id() == "ID34690");
+    assert(l.get_value().get_title() == "Green Grass of Wyoming");
+    
+    // Genre tests
+    TreeMultimap<std::string,Movie>::Iterator b = m_t_genre.find("fantasy");
+    assert(b.get_value().get_title() == "The Man Without Gravity");
+    assert(b.get_value().get_release_year() == "2019");
+    b.advance();
+    assert(b.get_value().get_title() == "Everything Is Terrible! Presents: The Great Satan");
+    assert(b.get_value().get_id() == "ID36649");
+    
+    b = m_t_genre.find("romance");
+    assert(b.get_value().get_id() == "ID10782");
+    assert(b.get_value().get_title() == "Santosh Subramaniam");
+
+// Treemm Iterator test
+inline void testIterator()
+{
+    TreeMultimap<int,int>::Iterator it;
+    if(!it.is_valid())
+        std::cout << "This will print!" << std::endl;
+}
